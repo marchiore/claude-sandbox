@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# Roda o Claude Code num container podman com acesso só ao diretório atual.
+# Uso: claude-sandbox [args do claude]   ex: claude-sandbox --dangerously-skip-permissions
+set -euo pipefail
+
+IMAGE=localhost/claude-sandbox:latest
+VOLUME=claude-config
+
+dir="$(pwd -P)"
+case "$dir" in
+  "/" | "$HOME" | "/Users" | "/home")
+    echo "claude-sandbox: recusando montar $dir; rode dentro de um projeto" >&2
+    exit 1
+    ;;
+esac
+
+podman volume exists "$VOLUME" || podman volume create "$VOLUME" >/dev/null
+
+# label=disable: o SELinux do container_t impede o bubblewrap (sandbox do Bash do
+# Claude) de montar /proc. Sem SELinux não precisa de relabel (:Z) no volume.
+exec podman run -it --rm --init \
+  --name "claude-sandbox-$$" \
+  --userns=keep-id:uid=1000,gid=1000 \
+  --cap-drop=ALL \
+  --security-opt=no-new-privileges \
+  --security-opt=label=disable \
+  --pids-limit=512 \
+  --memory="${CLAUDE_SANDBOX_MEMORY:-2g}" \
+  --cpus="${CLAUDE_SANDBOX_CPUS:-2}" \
+  --volume "$dir:/workspace:rw" \
+  --volume "$VOLUME:/home/ubuntu/.claude" \
+  -w /workspace \
+  "$IMAGE" claude "$@"

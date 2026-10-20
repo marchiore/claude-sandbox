@@ -1,0 +1,56 @@
+{
+  "sandbox": {
+    "enabled": true,
+    "failIfUnavailable": true,
+    "allowUnsandboxedCommands": false,
+    "enableWeakerNestedSandbox": true,
+    "filesystem": {
+      "denyRead": [
+        "/workspace/.env",
+        "/workspace/.env.*",
+        "/workspace/**/.env",
+        "/workspace/**/.env.*"
+      ],
+      "allowRead": [
+        "/workspace/**/.env.example"
+      ]
+    },
+    "network": {
+      "strictAllowlist": true,
+      "allowManagedDomainsOnly": true,
+      "allowedDomains": [
+        "github.com",
+        "*.github.com",
+        "*.githubusercontent.com",
+        "registry.npmjs.org",
+        "pypi.org",
+        "files.pythonhosted.org",
+        "proxy.golang.org",
+        "sum.golang.org",
+        "storage.googleapis.com"
+      ]
+    },
+    "credentials": {
+      "files": [
+        { "path": "~/.claude/.credentials.json", "mode": "deny" },
+        { "path": "~/.claude/.claude.json", "mode": "deny" }
+      ],
+      "envVars": [
+        { "name": "CLAUDE_CODE_OAUTH_TOKEN", "mode": "deny" },
+        { "name": "ANTHROPIC_API_KEY", "mode": "deny" }
+      ]
+    }
+  },
+  "permissions": {
+    "deny": [
+      "Read(~/.claude/.credentials.json)",
+      "Read(~/.claude/.claude.json)",
+      "Read(.env)",
+      "Read(.env.*)",
+      "Read(!.env.example)",
+      "Edit(.env)",
+      "Edit(.env.*)",
+      "Edit(!.env.example)"
+    ]
+  }
+}
